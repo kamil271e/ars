@@ -1,0 +1,7 @@
+nlp/
+meta_data/
+*.csv
+*.ipynb
+__pycache__
+.idea
+vectorstore/
