@@ -1,10 +1,11 @@
 import time
 
 
-def tictoc(func):
+def tictoc(func: callable) -> callable:
     def wrapper(*args, **kwargs):
         start = time.time()
-        func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end = time.time()
         print(f"Time elapsed: {end - start}")
+        return result
     return wrapper

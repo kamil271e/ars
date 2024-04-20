@@ -5,3 +5,4 @@ meta_data/
 __pycache__
 .idea
 vectorstore/
+.ipynb_checkpoints
