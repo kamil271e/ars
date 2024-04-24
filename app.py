@@ -1,10 +1,18 @@
 import streamlit as st
-from rag import *
+from src.rag import *
 
 
 @st.cache_resource(max_entries=1)
-def load_components() -> VectorStore:
-    return load_vectorstore()
+def load_rag_component() -> RAG:
+    cfg = Config()
+    r = RAG(
+        data_path=cfg.DATA_PATH,
+        embeddings_model=cfg.EMBEDDINGS_MODEL,
+        vectorstore_path=cfg.VECTORSTORE_PATH,
+        vectorstore_type=cfg.VECTORSTORE_TYPE,
+        text_splitter=cfg.TEXT_SPLITTER,
+    )
+    return r
 
 
 if __name__ == "__main__":
@@ -18,21 +26,21 @@ if __name__ == "__main__":
     #     st.title("Article Retrieval System")
     st.title("Medium Article Retrieval System")
 
-    query_col, k_col = st.columns([2, 1])
+    query_col, n_col = st.columns([2, 1])
     with query_col:
         query = st.text_input("Enter your query:", "KNN introduction")
-    with k_col:
-        k = st.slider(
+    with n_col:
+        n = st.slider(
             "Select the number of results to obtain:",
             min_value=1,
             max_value=10,
             value=1,
         )
 
-    vectorstore = load_components()
+    rag = load_rag_component()
 
     if st.button("Retrieve"):
-        results = simple_retrieval(vectorstore, query, k=k)
+        results = rag.simple_retrieval(query, n=n)
         if results:
             expanders = [0] * len(results)
             st.subheader("Results:")
