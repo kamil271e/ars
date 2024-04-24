@@ -1,9 +1,11 @@
 langchain
 langchain_community
 langchain_experimental
+transformers
 pandas
 streamlit
 tiktoken
-pandas
 chromadb
 qdrant-client
+faiss
+kaggle

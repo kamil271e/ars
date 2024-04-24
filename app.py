@@ -5,33 +5,32 @@ from src.rag import *
 @st.cache_resource(max_entries=1)
 def load_rag_component() -> RAG:
     cfg = Config()
-    r = RAG(
-        data_path=cfg.DATA_PATH,
+    return RAG(
+        data_dir=cfg.DATA_DIR,
+        dataset=cfg.DATASET,
         embeddings_model=cfg.EMBEDDINGS_MODEL,
-        vectorstore_path=cfg.VECTORSTORE_PATH,
+        vectorstore_dir=cfg.VECTORSTORE_DIR,
         vectorstore_type=cfg.VECTORSTORE_TYPE,
         text_splitter=cfg.TEXT_SPLITTER,
     )
-    return r
 
 
 if __name__ == "__main__":
-    # img_col, title_col = st.columns([1, 2])
-    # with img_col:
-    #     st.image(
-    #         "https://findingtom.com/images/uploads/medium-logo/article-image-00.jpeg",
-    #         width=200,
-    #     )
-    # with title_col:
-    #     st.title("Article Retrieval System")
-    st.title("Medium Article Retrieval System")
+    img_col, title_col = st.columns([1, 2])
+    with img_col:
+        st.image(
+            "https://findingtom.com/images/uploads/medium-logo/article-image-00.jpeg",
+            width=200,
+        )
+    with title_col:
+        st.markdown('<p style="font-size: 36px; margin-top: 30px;">ARS: Article Retrieval System</p>', unsafe_allow_html=True)
 
     query_col, n_col = st.columns([2, 1])
     with query_col:
         query = st.text_input("Enter your query:", "KNN introduction")
     with n_col:
         n = st.slider(
-            "Select the number of results to obtain:",
+            "Select the no. of results to retrieve:",
             min_value=1,
             max_value=10,
             value=1,
