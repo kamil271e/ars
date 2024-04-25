@@ -1,5 +1,5 @@
 # article-retrieval-system
-Efficient RAG retrieval system for article fragments from the Kaggle dataset [available here](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data). This system supports popular vector stores retrieval and includes a Question Answering System with Large Language Models (LLMs). By default, it utilizes [FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) for vector store retrieval and the [Mixtral-8x7B](https://arxiv.org/pdf/2401.04088) LLM.
+Efficient RAG retrieval system for article fragments from the Kaggle dataset [available here](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data). This system supports popular vector stores retrieval and includes a Question Answering functionality with Large Language Models (LLMs). By default, it utilizes [FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) for vector store retrieval and the [Mixtral-8x7B](https://arxiv.org/pdf/2401.04088) LLM. More details in [**report**](report.md).
 
 ## Prerequisites
 
@@ -29,4 +29,4 @@ sudo docker container run -it -p 8501:8501 ars-app:latest
 ```
 
 ## Demo
-TODO
+![ars_demo](https://github.com/kamil271e/ars/assets/82380348/a34596ca-e5a4-48fc-bfcf-fe4729b78fbc)
