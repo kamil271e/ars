@@ -1,4 +1,5 @@
 import streamlit as st
+
 from typing import Tuple
 from src.rag import *
 
@@ -6,14 +7,17 @@ from src.rag import *
 @st.cache_resource(max_entries=1)
 def rag_components() -> Tuple[RAG, Config]:
     cfg = Config()
-    return RAG(
-        data_dir=cfg.DATA_DIR,
-        dataset=cfg.DATASET,
-        embeddings_model=cfg.EMBEDDINGS_MODEL,
-        vectorstore_dir=cfg.VECTORSTORE_DIR,
-        vectorstore_type=cfg.VECTORSTORE_TYPE,
-        text_splitter=cfg.TEXT_SPLITTER,
-    ), cfg
+    return (
+        RAG(
+            data_dir=cfg.DATA_DIR,
+            dataset=cfg.DATASET,
+            embeddings_model=cfg.EMBEDDINGS_MODEL,
+            vectorstore_dir=cfg.VECTORSTORE_DIR,
+            vectorstore_type=cfg.VECTORSTORE_TYPE,
+            text_splitter=cfg.TEXT_SPLITTER,
+        ),
+        cfg,
+    )
 
 
 def vector_store_retrieval_components() -> Tuple[str, int]:
@@ -24,10 +28,15 @@ def vector_store_retrieval_components() -> Tuple[str, int]:
             width=200,
         )
     with title_col:
-        st.markdown('<p style="font-size: 36px; margin-top: 30px;">ARS: Article Retrieval System</p>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            '<p style="font-size: 36px; margin-top: 30px;">ARS: Article Retrieval System</p>',
+            unsafe_allow_html=True,
+        )
 
-    st.markdown('<p style="font-size: 36px; margin-top: 30px;">Vector Store Retrieval</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-size: 36px; margin-top: 30px;">Vector Store Retrieval</p>',
+        unsafe_allow_html=True,
+    )
     query_col, n_col = st.columns([2, 1])
     with query_col:
         query = st.text_input("Enter your query:", "KNN introduction")
@@ -42,7 +51,10 @@ def vector_store_retrieval_components() -> Tuple[str, int]:
 
 
 def qa_system_components() -> Tuple[str, int, int]:
-    st.markdown('<p style="font-size: 36px; margin-top: 30px;">Q/A System</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-size: 36px; margin-top: 30px;">Q/A System</p>',
+        unsafe_allow_html=True,
+    )
     question = st.text_input("Enter your question:", "What is Variance?")
     max_tokens = st.slider(
         "Select the max no. of tokens:",
@@ -60,7 +72,6 @@ def qa_system_components() -> Tuple[str, int, int]:
 
 
 if __name__ == "__main__":
-
     query, n = vector_store_retrieval_components()
     rag, cfg = rag_components()
 
@@ -77,14 +88,17 @@ if __name__ == "__main__":
 
     if st.button("Ask LLM"):
         if not cfg.HUGGINGFACEHUB_API_TOKEN:
-            st.error("Please set the HUGGINGFACEHUB_API_TOKEN environment variable in .env file.")
+            st.error(
+                "Please set the HUGGINGFACEHUB_API_TOKEN environment variable in .env file."
+            )
             st.stop()
         else:
-            print(cfg.HUGGINGFACEHUB_API_TOKEN)
-            results = rag.generate_llm_answer(api=cfg.LLM_API,
-                                              token=cfg.HUGGINGFACEHUB_API_TOKEN,
-                                              question=question,
-                                              n=chunks,
-                                              max_tokens=max_tokens)
+            results = rag.generate_llm_answer(
+                api=cfg.LLM_API,
+                token=cfg.HUGGINGFACEHUB_API_TOKEN,
+                question=question,
+                num_chunks=chunks,
+                max_tokens=max_tokens,
+            )
             if results:
                 st.write(results)

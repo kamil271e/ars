@@ -3,12 +3,13 @@ import requests
 import pandas as pd
 
 from langchain.text_splitter import TextSplitter
-from langchain_experimental.text_splitter import SemanticChunker
 from langchain_community.document_loaders import DataFrameLoader
-from langchain_core.documents.base import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma, Qdrant, FAISS, VectorStore
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_core.documents.base import Document
 from qdrant_client import QdrantClient
+
 from kaggle.api.kaggle_api_extended import KaggleApi
 from dotenv import load_dotenv
 from typing import List
@@ -23,10 +24,10 @@ class Config:
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     TEXT_SPLITTER = SemanticChunker(EMBEDDINGS_MODEL)
-    VECTORSTORE_TYPE = Chroma
+    VECTORSTORE_TYPE = FAISS
     VECTORSTORE_DIR = "vectorstore"
     LLM_API = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
-    HUGGINGFACEHUB_API_TOKEN = os.getenv('HUGGINGFACEHUB_API_TOKEN')
+    HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 
 class RAG:
@@ -73,7 +74,9 @@ class RAG:
     def init_vectorstore(self):
         """
         Vectorstore loading method.
-        Unfortunately, LangChain API does not provide a universal method for loading/creating different vectorstores.
+        This method initializes the vector store based on the specified vector store type.
+        Unfortunately, LangChain API does not provide a universal method for loading/creating different vector stores.
+        Supports: Chroma, Qdrant, FAISS
         """
         if self.vectorstore_type == Chroma:
             self.vectorstore = Chroma(
@@ -98,7 +101,8 @@ class RAG:
     def create_vectorstore(self):
         """
         Vectorstore creation method.
-        It loads a chosen type of vectorstore and ingests document embeddings into it.
+        This method loads the data using a data loader, splits the documents using a text splitter,
+        and then ingests the document embeddings into the chosen vector store.
         """
         loader = self.get_data_loader()
         documents = loader.load()
@@ -123,7 +127,9 @@ class RAG:
         else:
             raise ValueError("Vectorstore type not supported.")
 
-    def generate_llm_answer(self, api: str, token: str, question: str, n: int, max_tokens: int) -> str:
+    def generate_llm_answer(
+        self, api: str, token: str, question: str, num_chunks: int, max_tokens: int
+    ) -> str:
         if token is None:
             raise ValueError("HuggingFace API token is required.")
         headers = {"Authorization": f"Bearer {token}"}
@@ -132,8 +138,8 @@ class RAG:
             response = requests.post(api, headers=headers, json=payload)
             return response.json()
 
-        retrieved = self.simple_retrieval(question, n)
-        context = ' '.join([doc.metadata['Text'] for doc in retrieved])
+        retrieved = self.simple_retrieval(question, num_chunks)
+        context = " ".join([doc.metadata["Text"] for doc in retrieved])
 
         prompt = f"""
         [INST] 
@@ -147,7 +153,7 @@ class RAG:
         [/INST]"""
 
         output = query({"inputs": prompt, "parameters": {"max_new_tokens": max_tokens}})
-        generated_text = output[0]['generated_text']
-        end_flag = '[/INST]'
+        generated_text = output[0]["generated_text"]
+        end_flag = "[/INST]"
         inst_index = generated_text.find(end_flag)
-        return generated_text[inst_index + len(end_flag):].strip()
+        return generated_text[inst_index + len(end_flag) :].strip()
