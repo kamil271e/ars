@@ -1,14 +1,32 @@
 # article-retrieval-system
-Efficient RAG retrieval system for article fragments from Kaggle [dataset](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data).
+Efficient RAG retrieval system for article fragments from the Kaggle dataset [available here](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data). This system supports popular vector stores retrieval and includes a Question Answering System with Large Language Models (LLMs). By default, it utilizes [FAISS](https://engineering.fb.com/2017/03/29/data-infrastructure/faiss-a-library-for-efficient-similarity-search/) for vector store retrieval and the [Mixtral-8x7B](https://arxiv.org/pdf/2401.04088) LLM.
 
+## Prerequisites
 
 ### Data loading
-In order to download dataset, you can choose one of two options:
-1. Download it manually from [link](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data) and create folder named ```data```. Then store the ```medium.csv``` file in that folder.
-2. Use the Kaggle API: Download your account token from [this link](https://www.kaggle.com/settings/account), overwrite the existing ```kaggle.json``` file from repository and execute the following code, that sets up authentication:
+To download the dataset, you can choose one of two options:
+1. Download it manually from [link](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data) and create folder named ```data``` in project root directory. Then store the ```medium.csv``` file in that folder.
+2. Use the Kaggle API: Download your account token from [this link](https://www.kaggle.com/settings/account) and overwrite the existing ```kaggle.json``` file.
+
+
+### User Access Token
+This step is not obligatory but necessary if you want to use Q/A system with Large Language Model support. To obtain your HuggingFaceHub API Token generate it and copy it from your HuggingFace [account](https://huggingface.co/settings/tokens) and paste it to ``.env`` file overwriting ``<YOUR_TOKEN>`` placeholder.
+
+## Running options
+
+### Local
 ```
-mkdir -p ~/.kaggle/
-cp kaggle.json ~/.kaggle/kaggle.json
-chmod 600 ~/.kaggle/kaggle.json
+pip install -r requirements.txt
+chmod +x kaggle.sh
+./kaggle.sh
+streamlit run app.py
 ```
 
+### Docker
+```
+sudo docker build -t ars-app:latest .
+sudo docker container run -it -p 8501:8501 ars-app:latest
+```
+
+## Demo
+TODO
