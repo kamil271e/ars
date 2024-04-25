@@ -2,10 +2,11 @@ langchain
 langchain_community
 langchain_experimental
 transformers
+sentence-transformers
 pandas
 streamlit
 tiktoken
 chromadb
 qdrant-client
-faiss
 kaggle
+python-dotenv

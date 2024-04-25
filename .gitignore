@@ -7,3 +7,4 @@ __pycache__
 vectorstore/
 .ipynb_checkpoints
 *.pdf
+secrets.json

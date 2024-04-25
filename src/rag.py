@@ -1,4 +1,5 @@
 import os
+import requests
 import pandas as pd
 
 from langchain.text_splitter import TextSplitter
@@ -9,11 +10,13 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma, Qdrant, FAISS, VectorStore
 from qdrant_client import QdrantClient
 from kaggle.api.kaggle_api_extended import KaggleApi
+from dotenv import load_dotenv
 from typing import List
 from src.utils import timer
 
 
 class Config:
+    load_dotenv()
     DATA_DIR = "data"
     DATASET = "meruvulikith/1300-towards-datascience-medium-articles-dataset"
     EMBEDDINGS_MODEL = HuggingFaceEmbeddings(
@@ -22,6 +25,8 @@ class Config:
     TEXT_SPLITTER = SemanticChunker(EMBEDDINGS_MODEL)
     VECTORSTORE_TYPE = Chroma
     VECTORSTORE_DIR = "vectorstore"
+    LLM_API = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+    HUGGINGFACEHUB_API_TOKEN = os.getenv('HUGGINGFACEHUB_API_TOKEN')
 
 
 class RAG:
@@ -117,3 +122,32 @@ class RAG:
             self.vectorstore.save_local(self.vectorstore_dir)
         else:
             raise ValueError("Vectorstore type not supported.")
+
+    def generate_llm_answer(self, api: str, token: str, question: str, n: int, max_tokens: int) -> str:
+        if token is None:
+            raise ValueError("HuggingFace API token is required.")
+        headers = {"Authorization": f"Bearer {token}"}
+
+        def query(payload):
+            response = requests.post(api, headers=headers, json=payload)
+            return response.json()
+
+        retrieved = self.simple_retrieval(question, n)
+        context = ' '.join([doc.metadata['Text'] for doc in retrieved])
+
+        prompt = f"""
+        [INST] 
+        Answer the question, use your knowledge and given context:
+
+        {context}
+
+        QUESTION:
+        {question} 
+
+        [/INST]"""
+
+        output = query({"inputs": prompt, "parameters": {"max_new_tokens": max_tokens}})
+        generated_text = output[0]['generated_text']
+        end_flag = '[/INST]'
+        inst_index = generated_text.find(end_flag)
+        return generated_text[inst_index + len(end_flag):].strip()
