@@ -10,3 +10,4 @@ chromadb
 qdrant-client
 kaggle
 python-dotenv
+faiss-cpu

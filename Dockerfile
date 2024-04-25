@@ -9,6 +9,7 @@ RUN pip3 install -r requirements.txt
 COPY kaggle.json /root/.kaggle/kaggle.json
 RUN chmod 600 /root/.kaggle/kaggle.json
 
+COPY .env /home/.env
 
 COPY data /home/data
 COPY src /home/src
