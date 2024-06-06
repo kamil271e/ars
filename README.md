@@ -8,22 +8,32 @@ To download the dataset, you can choose one of two options:
 1. Download it manually from [link](https://www.kaggle.com/datasets/meruvulikith/1300-towards-datascience-medium-articles-dataset/data) and create folder named ```data``` in project root directory. Then store the ```medium.csv``` file in that folder.
 2. Use the Kaggle API: Download your account token from [this link](https://www.kaggle.com/settings/account) and overwrite the existing ```kaggle.json``` file.
 
-
-### User Access Token
+### HuggingFace Access Token
 This step is not obligatory but necessary if you want to use Q/A system with Large Language Model support. To obtain your HuggingFaceHub API Token generate it and copy it from your HuggingFace [account](https://huggingface.co/settings/tokens) and paste it to ``.env`` file overwriting ``<YOUR_TOKEN>`` placeholder.
+
+### Poetry install
+```
+pip install pipx
+pipx install poetry
+```
+
+### Ollama setup
+```
+sudo snap install ollama
+ollama pull llama3
+```
+
+### LiteLLM proxy setup
+```
+litellm --model ollama/llama3
+```
 
 ## Running options
 
 ### Local
-#### Poetry setup
 ```
-pip install pipx
-pipx install poetry
 poetry install
 poetry shell
-```
-#### Running
-```
 chmod +x kaggle.sh
 ./kaggle.sh
 streamlit run app.py
