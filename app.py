@@ -2,6 +2,7 @@ import streamlit as st
 
 from typing import Tuple
 from src.rag import *
+from langsmith import traceable
 
 
 @st.cache_resource(max_entries=1)
@@ -93,9 +94,19 @@ if __name__ == "__main__":
             )
             st.stop()
         else:
-            results = rag.generate_llm_answer(
-                api=cfg.LLM_API,
-                token=cfg.HUGGINGFACEHUB_API_TOKEN,
+            # # HUGGINGFACE API
+            # results = rag.generate_llm_answer(
+            #     api=cfg.LLM_API,
+            #     token=cfg.HUGGINGFACEHUB_API_TOKEN,
+            #     question=question,
+            #     num_chunks=chunks,
+            #     max_tokens=max_tokens,
+            # )
+
+            # OPENAI API
+            results = rag.generate_llm_answer_openai(
+                api=cfg.LITELLM_URL,
+                model=cfg.LITELLM_MODEL,
                 question=question,
                 num_chunks=chunks,
                 max_tokens=max_tokens,
