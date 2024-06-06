@@ -15,8 +15,15 @@ This step is not obligatory but necessary if you want to use Q/A system with Lar
 ## Running options
 
 ### Local
+#### Poetry setup
 ```
-pip install -r requirements.txt
+pip install pipx
+pipx install poetry
+poetry install
+poetry shell
+```
+#### Running
+```
 chmod +x kaggle.sh
 ./kaggle.sh
 streamlit run app.py
