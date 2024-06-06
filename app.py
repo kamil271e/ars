@@ -2,7 +2,7 @@ import streamlit as st
 
 from typing import Tuple
 from src.rag import *
-from langsmith import traceable
+from langsmith.run_helpers import traceable
 
 
 @st.cache_resource(max_entries=1)
@@ -18,6 +18,18 @@ def rag_components() -> Tuple[RAG, Config]:
             text_splitter=cfg.TEXT_SPLITTER,
         ),
         cfg,
+    )
+
+@traceable(run_type="chain")
+def llm_answer(
+    rag: RAG, api: str, model: str, question: str, num_chunks: int, max_tokens: int
+) -> str:
+    return rag.generate_llm_answer_openai(
+        api=api,
+        model=model,
+        question=question,
+        num_chunks=num_chunks,
+        max_tokens=max_tokens,
     )
 
 
@@ -73,6 +85,7 @@ def qa_system_components() -> Tuple[str, int, int]:
 
 
 if __name__ == "__main__":
+    llmops = os.getenv("LLMOPS", "").lower() == "true"
     query, n = vector_store_retrieval_components()
     rag, cfg = rag_components()
 
@@ -88,28 +101,29 @@ if __name__ == "__main__":
     question, max_tokens, chunks = qa_system_components()
 
     if st.button("Ask LLM"):
-        if not cfg.HUGGINGFACEHUB_API_TOKEN:
+        if not cfg.HUGGINGFACEHUB_API_TOKEN and not cfg.LITELLM_URL:
             st.error(
-                "Please set the HUGGINGFACEHUB_API_TOKEN environment variable in .env file."
+                "Please set the HUGGINGFACEHUB_API_TOKEN environment variable in .env file. Or litellm proxy."
             )
             st.stop()
         else:
-            # # HUGGINGFACE API
-            # results = rag.generate_llm_answer(
-            #     api=cfg.LLM_API,
-            #     token=cfg.HUGGINGFACEHUB_API_TOKEN,
-            #     question=question,
-            #     num_chunks=chunks,
-            #     max_tokens=max_tokens,
-            # )
-
-            # OPENAI API
-            results = rag.generate_llm_answer_openai(
-                api=cfg.LITELLM_URL,
-                model=cfg.LITELLM_MODEL,
+            # HUGGING FACE API - faster
+            if not llmops:
+                results = rag.generate_llm_answer(
+                api=cfg.LLM_API,
+                token=cfg.HUGGINGFACEHUB_API_TOKEN,
                 question=question,
                 num_chunks=chunks,
                 max_tokens=max_tokens,
             )
+            else: # LITELLM/OPENAI API
+                results = llm_answer(
+                    rag=rag,
+                    api=cfg.LITELLM_URL,
+                    model=cfg.LITELLM_MODEL,
+                    question=question,
+                    num_chunks=chunks,
+                    max_tokens=max_tokens,
+                )
             if results:
                 st.write(results)

@@ -47,3 +47,16 @@ sudo docker container run -it -p 8501:8501 ars-app:latest
 
 ## Demo
 ![ars_demo](https://github.com/kamil271e/ars/assets/82380348/a34596ca-e5a4-48fc-bfcf-fe4729b78fbc)
+
+## LLMOps
+
+### LangSmith setup
+
+Got to [LangSmith website](https://smith.langchain.com/), sign in, generate API key and paste it into ```.env```.
+
+### Running
+To run application with observability mode:
+
+```
+LLMOPS=true streamlit run app.py
+```
