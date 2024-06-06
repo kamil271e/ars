@@ -1,6 +1,7 @@
 import os
 import requests
 import pandas as pd
+import openai
 
 from langchain.text_splitter import TextSplitter
 from langchain_community.document_loaders import DataFrameLoader
@@ -28,6 +29,8 @@ class Config:
     VECTORSTORE_DIR = "vectorstore"
     LLM_API = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
     HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+    LITELLM_URL = "http://0.0.0.0:4000"
+    LITELLM_MODEL = "llama3"
 
 
 class RAG:
@@ -157,3 +160,30 @@ class RAG:
         end_flag = "[/INST]"
         inst_index = generated_text.find(end_flag)
         return generated_text[inst_index + len(end_flag) :].strip()
+
+    def generate_llm_answer_openai(
+        self, api: str, model: str, question: str, num_chunks: int, max_tokens: int
+    ) -> str:
+        client = openai.Client(api_key="123", base_url=api)
+
+        retrieved = self.simple_retrieval(question, num_chunks)
+        context = " ".join([doc.metadata["Text"] for doc in retrieved])
+
+        prompt = f"""
+        [INST] 
+        Answer the question, use your knowledge and given context:
+
+        {context}
+
+        QUESTION:
+        {question} 
+
+        [/INST]"""
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.0,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content
