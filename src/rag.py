@@ -31,6 +31,7 @@ class Config:
     HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
     LITELLM_URL = "http://0.0.0.0:4000"
     LITELLM_MODEL = "llama3"
+    OPENAI_MODEL = "gpt-3.5-turbo-0125"
 
 
 class RAG:

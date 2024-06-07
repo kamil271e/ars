@@ -3,7 +3,7 @@ import streamlit as st
 from typing import Tuple
 from src.rag import *
 from langsmith.run_helpers import traceable
-
+from autoevals import LLMClassifier
 
 @st.cache_resource(max_entries=1)
 def rag_components() -> Tuple[RAG, Config]:
@@ -31,6 +31,39 @@ def llm_answer(
         num_chunks=num_chunks,
         max_tokens=max_tokens,
     )
+
+@traceable(run_type="chain")
+def evaluate_answer(question: str, answer: str) -> dict:
+    eval_prompt = f"""
+    You are an evaluator. Please read the following question and answer, and determine if the answer correctly and accurately responds to the question.
+    Answers that suggest that the following context does not provide enough information to answer the question should be marked as incorrect. 
+    Provide your evaluation by choosing "Y" for Yes and "N" for No.
+    
+    Question: {question}
+    Answer: {answer}
+    
+    Does the answer correctly and accurately respond to the question? Does user obtain information that he wanted?
+    """
+    choice_scores = {"Y": 1, "N": 0}
+    evaluator = LLMClassifier(
+        name=cfg.OPENAI_MODEL,
+        api_key=os.getenv("OPENAI_API_KEY"),
+        choice_scores=choice_scores,
+        prompt_template=eval_prompt,
+        use_cot=True,
+    )
+    params = {"question": question, "answer": answer}
+    response = evaluator(output="", **params)
+    return response.score, response.metadata
+
+
+@traceable(run_type="chain")
+def answer_and_eval(rag: RAG, api: str, model: str, question: str, num_chunks: int, max_tokens: int):
+    answer = llm_answer(rag, api, model, question, num_chunks, max_tokens)
+    score, rationale = evaluate_answer(question, answer)
+    if score == 0:
+        raise ValueError(rationale)
+    return answer
 
 
 def vector_store_retrieval_components() -> Tuple[str, int]:
@@ -68,7 +101,7 @@ def qa_system_components() -> Tuple[str, int, int]:
         '<p style="font-size: 36px; margin-top: 30px;">Q/A System</p>',
         unsafe_allow_html=True,
     )
-    question = st.text_input("Enter your question:", "What is Variance?")
+    question = st.text_input("Enter your question:", "What is SVM?")
     max_tokens = st.slider(
         "Select the max no. of tokens:",
         min_value=50,
@@ -108,22 +141,25 @@ if __name__ == "__main__":
             st.stop()
         else:
             # HUGGING FACE API - faster
-            if not llmops:
-                results = rag.generate_llm_answer(
-                api=cfg.LLM_API,
-                token=cfg.HUGGINGFACEHUB_API_TOKEN,
-                question=question,
-                num_chunks=chunks,
-                max_tokens=max_tokens,
-            )
-            else: # LITELLM/OPENAI API
-                results = llm_answer(
-                    rag=rag,
-                    api=cfg.LITELLM_URL,
-                    model=cfg.LITELLM_MODEL,
-                    question=question,
-                    num_chunks=chunks,
-                    max_tokens=max_tokens,
-                )
-            if results:
-                st.write(results)
+            try:
+                if not llmops:
+                    answer = rag.generate_llm_answer(
+                        api=cfg.LLM_API,
+                        token=cfg.HUGGINGFACEHUB_API_TOKEN,
+                        question=question,
+                        num_chunks=chunks,
+                        max_tokens=max_tokens,
+                    )
+                else:  # LITELLM/OPENAI API
+                    answer = answer_and_eval(
+                        rag=rag,
+                        api=cfg.LITELLM_URL,
+                        model=cfg.LITELLM_MODEL,
+                        question=question,
+                        num_chunks=chunks,
+                        max_tokens=max_tokens,
+                    )
+                if answer:
+                    st.write(answer)
+            except ValueError as e:
+                st.error(f"The answer did not pass the evaluation: {str(e)}")

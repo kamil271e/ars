@@ -51,8 +51,10 @@ sudo docker container run -it -p 8501:8501 ars-app:latest
 ## LLMOps
 
 ### LangSmith setup
-
 Got to [LangSmith website](https://smith.langchain.com/), sign in, generate API key and paste it into ```.env```.
+
+### Evaluation
+To be able to evaluate the system's answers you need to generate an OpenAI API key from [link](https://platform.openai.com/api-keys) and paste it into ```.env```.
 
 ### Running
 To run application with observability mode:
